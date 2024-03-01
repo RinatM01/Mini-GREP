@@ -8,8 +8,6 @@ fn main() {
         println!("Error parsing input: {err}");
         process::exit(1);
     });
-    println!("Query: {}", config.query);
-    println!("Path: {}", config.file_path);
 
     if let Err(e) = minigrep::run(config) {
         println!("Error caught in main: {e}");
@@ -18,3 +16,4 @@ fn main() {
     // dbg!(args);
     //cargo run -- lol src/text.txt
 }
+
