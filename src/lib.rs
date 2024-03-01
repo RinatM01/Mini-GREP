@@ -16,9 +16,9 @@ pub fn run(config: Config) -> Result<(), Box<dyn Error>> {
 
 pub fn search<'a>(query: &str, ignore_case: bool, contents: &'a str) -> Option<Vec<&'a str>> {
     let mut res: Vec<&'a str> = vec![];
-    let query = query.to_lowercase();
     for line in contents.lines() {
         if ignore_case {
+            let query = query.to_lowercase();
             if line.to_lowercase().contains(&query) {
                 res.push(line)
             }   
