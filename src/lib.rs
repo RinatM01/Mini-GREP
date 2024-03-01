@@ -1,8 +1,8 @@
-use std::{fs, error::Error};
+use std::{env, error::Error, fs};
 
 pub fn run(config: Config) -> Result<(), Box<dyn Error>> {
     let contents = fs::read_to_string(config.file_path)?;
-    let res = match search(&config.query, &contents) {
+    let res = match search(&config.query, config.ignore_case, &contents) {
         Some(lines) => {
             for line in lines {
                 println!("{line}")
@@ -14,12 +14,20 @@ pub fn run(config: Config) -> Result<(), Box<dyn Error>> {
     Ok(res?)
 }
 
-pub fn search<'a>(query: &str, contents: &'a str) -> Option<Vec<&'a str>> {
+pub fn search<'a>(query: &str, ignore_case: bool, contents: &'a str) -> Option<Vec<&'a str>> {
     let mut res: Vec<&'a str> = vec![];
+    let query = query.to_lowercase();
     for line in contents.lines() {
-        if line.contains(query) {
-            res.push(line)
-        }   
+        if ignore_case {
+            if line.to_lowercase().contains(&query) {
+                res.push(line)
+            }   
+        } else {
+            if line.contains(&query) {
+                res.push(line)
+            }   
+        }
+        
     }
     if res.len() == 0 {return None}
     Some(res)
@@ -27,7 +35,8 @@ pub fn search<'a>(query: &str, contents: &'a str) -> Option<Vec<&'a str>> {
 
 pub struct Config {
     pub query: String,
-    pub file_path: String
+    pub file_path: String,
+    pub ignore_case: bool
 }
 
 impl Config {
@@ -37,7 +46,8 @@ impl Config {
         }
         return Ok(Config {
             query: args[1].clone(), 
-            file_path: args[2].clone()
+            file_path: args[2].clone(),
+            ignore_case: env::var("IGNORE_CASE").is_ok()
         })
     }
 }
@@ -46,15 +56,27 @@ impl Config {
 mod tests {
     use super::*;
     #[test]
-    fn one_result() {
+    fn one_result_case_sensetive() {
         let query = "rot";
         let contents = "\
 Fruits:
 apple, pear, carrot.
 Find a vegetable.";
         
-        assert_eq!(vec!["apple, pear, carrot."], search(query, contents).unwrap()); 
+        assert_eq!(vec!["apple, pear, carrot."], search(query, false, contents).unwrap()); 
     }
+
+    #[test]
+    fn one_result_case_insensetive() {
+        let query = "Its";
+        let contents = "\
+FruitS:
+apple, pear, carRot.
+Find a vegetable.
+its type is not a fruite";
+        
+        assert_eq!(vec!["FruitS:","its type is not a fruite"], search(query, true, contents).unwrap()); 
+    }      
 
     #[test]
     fn none_result() {
@@ -63,6 +85,6 @@ Find a vegetable.";
 Fruits:
 apple, pear, carrot.
 Find a vegetable.";
-        assert!(search(query, contents).is_none());
+        assert!(search(query, true, contents).is_none());
     }
 }
