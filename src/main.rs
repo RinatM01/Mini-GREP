@@ -1,16 +1,20 @@
 
-use std::{env, fs};
+use std::{env, process};
+use minigrep::Config;
 
 fn main() {
     let args: Vec<String> = env::args().collect();
-    let query = &args[1];
-    let file_path = &args[2];
-    println!("Query: {}", query);
-    println!("Path: {}", file_path);
+    let config = Config::build(&args).unwrap_or_else(|err| {
+        println!("Error parsing input: {err}");
+        process::exit(1);
+    });
+    println!("Query: {}", config.query);
+    println!("Path: {}", config.file_path);
 
-    let file = fs::read_to_string(file_path).expect("There should be existing file!");
-
-    println!("Contents of file: \n{file}");
+    if let Err(e) = minigrep::run(config) {
+        println!("Error caught in main: {e}");
+        process::exit(1);
+    }
     // dbg!(args);
     //cargo run -- lol src/text.txt
 }
