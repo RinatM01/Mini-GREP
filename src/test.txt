@@ -1,0 +1,4 @@
+FruitS:
+apple, pear, carRot.
+Find a vegetable.
+its type is not a fruite
